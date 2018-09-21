@@ -4,6 +4,10 @@ require 'rubyXL'
 Bundler.require
 
 module GoogleSpreadsheetWrapper
+  def self.google_spreadsheet_as_hash_spreadsheet(google_filename)
+    google_spreadsheet_to_hash_spreadsheet(google_spreadsheet(google_filename))
+  end
+
   def self.google_spreadsheet(google_filename)
     session = GoogleDrive::Session.from_service_account_key('client_secret.json')
     session.spreadsheet_by_title(google_filename)
