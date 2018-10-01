@@ -14,5 +14,3 @@ def write_sheet
   google_filename = 'test_write_sheet'
   GoogleSpreadsheetWrapper.create_google_spreadsheet(google_filename)
 end
-
-write_sheet
