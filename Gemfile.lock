@@ -65,7 +65,9 @@ PLATFORMS
 
 DEPENDENCIES
   awesome_print
+  google-api-client (~> 0.11)
   google_drive
+  googleauth
   rubyXL
 
 BUNDLED WITH

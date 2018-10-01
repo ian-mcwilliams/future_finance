@@ -1,11 +1,19 @@
-require 'bundler'
 require 'awesome_print'
+require 'bundler'
 require 'rubyXL'
 Bundler.require
 
 module GoogleSpreadsheetWrapper
   def self.google_spreadsheet_as_hash_spreadsheet(google_filename)
     google_spreadsheet_to_hash_spreadsheet(google_spreadsheet(google_filename))
+  end
+
+  def self.create_google_spreadsheet(google_filename)
+    session = GoogleDrive::Session.from_service_account_key('client_secret.json')
+    puts '......'
+    spreadsheet = session.create_spreadsheet(google_filename)
+    worksheet = spreadsheet.add_worksheet('first_sheet')
+    worksheet.save
   end
 
   def self.google_spreadsheet(google_filename)
