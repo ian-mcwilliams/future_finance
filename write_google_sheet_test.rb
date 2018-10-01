@@ -1,4 +1,4 @@
-require_relative 'google_spreadsheet_wrapper'
+require_relative 'lib/google_spreadsheet_wrapper'
 require 'awesome_print'
 
 
