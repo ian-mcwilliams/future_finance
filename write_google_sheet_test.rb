@@ -3,7 +3,7 @@ require 'awesome_print'
 
 
 def load_sheet
-  hash_spreadsheet = GoogleSpreadsheetWrapper.google_spreadsheet_as_hash_spreadsheet('f3m_finance')
+  hash_spreadsheet = GoogleSpreadsheetWrapper.hash_spreadsheet('f3m_finance')
   balance = current_balance_from_sheets(hash_spreadsheet)
   ap balance
   all_transactions = transactions_from_sheet(hash_spreadsheet)
