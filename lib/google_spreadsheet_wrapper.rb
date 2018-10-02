@@ -4,7 +4,7 @@ require 'rubyXL'
 Bundler.require
 
 module GoogleSpreadsheetWrapper
-  def self.google_spreadsheet_as_hash_spreadsheet(google_filename)
+  def self.hash_spreadsheet(google_filename)
     google_spreadsheet_to_hash_spreadsheet(google_spreadsheet(google_filename))
   end
 
