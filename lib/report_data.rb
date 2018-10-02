@@ -34,7 +34,7 @@ module ReportData
     transactions = []
     if raw_transaction['frequency'] == 'monthly'
       current_date = today
-      (duration_days / 12 + 1).times do
+      (duration_days / 27).times do
         current_date = next_month_date(current_date, end_date, raw_transaction['payment_date'])
         break if current_date.nil?
         transactions << transaction_hash(current_date, raw_transaction)
@@ -42,8 +42,16 @@ module ReportData
       end
     elsif raw_transaction['frequency'] == 'annual'
       current_date = today
-      (duration_days / 365 + 1).times do
+      (duration_days / 365).times do
         current_date = next_year_date(current_date, end_date, raw_transaction['payment_date'])
+        break if current_date.nil?
+        transactions << transaction_hash(current_date, raw_transaction)
+        current_date += 1
+      end
+    elsif raw_transaction['frequency'] == 'quarterly'
+      current_date = today
+      (duration_days / 91).times do
+        current_date = next_quarter_date(current_date, end_date, raw_transaction['payment_date'])
         break if current_date.nil?
         transactions << transaction_hash(current_date, raw_transaction)
         current_date += 1
@@ -61,6 +69,18 @@ module ReportData
       description: transaction['description'],
       amount: transaction['amount']
     }
+  end
+
+  def self.next_quarter_date(start_date, end_date, payment_date)
+    current_date = start_date
+    valid_months = payment_date[/(\S{3}\/){3}\S{3}/].split('/')
+    3.times do
+      current_date = next_month_date(current_date, end_date, payment_date[/\d+\S{2}/])
+      break if current_date.nil?
+      return current_date if valid_months.include?(current_date.strftime('%b').downcase)
+      current_date += 1
+    end
+    nil
   end
 
   def self.next_year_date(start_date, end_date, payment_date)
