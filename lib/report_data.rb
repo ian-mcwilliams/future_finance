@@ -7,15 +7,30 @@ module ReportData
   def self.report_data(source, filename)
     hash_spreadsheet = source.hash_spreadsheet(filename)
     input_data = {
-      current_balance: DataIngres.current_balance_from_sheets(hash_spreadsheet),
+      opening_balance: DataIngres.current_balance_from_sheets(hash_spreadsheet),
       transactions: DataIngres.transactions_from_sheet(hash_spreadsheet)
     }
-    hash_future_finance(input_data)
+    transactions = all_extracted_transactions(input_data[:transactions])
+    { months: hash_months(transactions, input_data[:opening_balance]) }
   end
 
-  def self.hash_future_finance(input_data)
-    transactions = all_extracted_transactions(input_data[:transactions])
-    transactions
+  def self.hash_months(transactions, opening_balance)
+    months = transactions.map { |transaction| transaction[:date].strftime('%y%m') }.uniq
+    current_balance = (opening_balance * 100).to_i
+    minimum_balance = current_balance
+    months.each_with_object({}) do |month, h|
+      h[month] = { opening_balance: current_balance.to_f / 100 }
+      raw_month_transactions = transactions.select { |t| t[:date].strftime('%y%m') == month }
+      processed_month_transactions = []
+      raw_month_transactions.map do |t|
+        current_balance += t[:amount].delete('.').to_i
+        minimum_balance = current_balance if current_balance < minimum_balance
+        processed_month_transactions << { balance: current_balance.to_f / 100 }.merge(t)
+      end
+      h[month][:transactions] = processed_month_transactions
+      h[month][:closing_balance] = current_balance.to_f / 100
+      h[month][:minimum_balance] = minimum_balance.to_f / 100
+    end
   end
 
   def self.all_extracted_transactions(raw_transactions)
@@ -99,15 +114,3 @@ module ReportData
   end
 
 end
-
-{
-  "type" => "registration",
-  "payee" => "companies house",
-  "purpose" => "registration fee",
-  "frequency" => "annual",
-  "payment date" => "31st october",
-  "desc" => "",
-  "amount" => "13.00",
-  "precision" => "actual",
-  "final payment" => ""
-}
