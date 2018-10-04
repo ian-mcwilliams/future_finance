@@ -38,7 +38,7 @@ module ReportData
     raw_transactions.each do |raw_transaction|
       transactions.concat(extracted_transactions(raw_transaction))
     end
-    transactions
+    transactions.sort_by { |item| item[:date] }
   end
 
   def self.extracted_transactions(raw_transaction)
@@ -47,7 +47,8 @@ module ReportData
     end_date = DateTime.parse(raw_transaction['final_payment']) unless raw_transaction['final_payment'].empty?
     end_date ||= today + duration_days
     transactions = []
-    if raw_transaction['frequency'] == 'monthly'
+    case raw_transaction['frequency']
+    when 'monthly'
       current_date = today
       (duration_days / 27).times do
         current_date = next_month_date(current_date, end_date, raw_transaction['payment_date'])
@@ -55,7 +56,7 @@ module ReportData
         transactions << transaction_hash(current_date, raw_transaction)
         current_date += 1
       end
-    elsif raw_transaction['frequency'] == 'annual'
+    when 'annual'
       current_date = today
       (duration_days / 365).times do
         current_date = next_year_date(current_date, end_date, raw_transaction['payment_date'])
@@ -63,13 +64,19 @@ module ReportData
         transactions << transaction_hash(current_date, raw_transaction)
         current_date += 1
       end
-    elsif raw_transaction['frequency'] == 'quarterly'
+    when 'quarterly'
       current_date = today
       (duration_days / 91).times do
         current_date = next_quarter_date(current_date, end_date, raw_transaction['payment_date'])
         break if current_date.nil?
         transactions << transaction_hash(current_date, raw_transaction)
         current_date += 1
+      end
+    when 'one-off'
+      current_date = today
+      target_date = DateTime.parse(raw_transaction['payment_date'])
+      if current_date <= target_date && target_date <= end_date
+        transactions << transaction_hash(target_date, raw_transaction)
       end
     end
     transactions
