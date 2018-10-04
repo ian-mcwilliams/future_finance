@@ -42,8 +42,8 @@ module DataIngres
   end
 
   def self.transactions_from_sheet(hash_spreadsheet)
-    regular_costs_sheet = hash_spreadsheet['regular_costs']
-    table_sheet_to_hash_array(regular_costs_sheet)
+    planner_sheet = hash_spreadsheet['planner']
+    table_sheet_to_hash_array(planner_sheet)
   end
 
 end
