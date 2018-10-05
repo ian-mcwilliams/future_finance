@@ -23,7 +23,7 @@ module ReportData
       raw_month_transactions = transactions.select { |t| t[:date].strftime('%y%m') == month }
       processed_month_transactions = []
       raw_month_transactions.map do |t|
-        current_balance += t[:amount].delete('.').to_i
+        current_balance += t[:amount].delete(',').delete('.').to_i
         minimum_balance = current_balance if current_balance < minimum_balance
         processed_month_transactions << { balance: current_balance.to_f / 100 }.merge(t)
       end
