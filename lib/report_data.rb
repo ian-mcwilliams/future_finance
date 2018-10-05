@@ -48,6 +48,14 @@ module ReportData
     end_date ||= today + duration_days
     transactions = []
     case raw_transaction['frequency']
+    when 'weekly'
+      current_date = today
+      (duration_days / 7).times do
+        current_date = next_week_date(current_date, end_date, raw_transaction['payment_date'])
+        break if current_date.nil?
+        transactions << transaction_hash(current_date, raw_transaction)
+        current_date += 1
+      end
     when 'monthly'
       current_date = today
       (duration_days / 27).times do
@@ -91,6 +99,15 @@ module ReportData
       description: transaction['description'],
       amount: transaction['amount']
     }
+  end
+
+  def self.next_week_date(start_date, end_date, payment_date)
+    target_date = start_date
+    target_day = DateTime.parse(payment_date).strftime('u%')
+    7.times do
+      target_date += 1 unless target_date.strftime('%u') == target_day
+    end
+    target_date > end_date ? nil : target_date
   end
 
   def self.next_quarter_date(start_date, end_date, payment_date)
