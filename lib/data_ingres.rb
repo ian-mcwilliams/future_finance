@@ -17,7 +17,7 @@ module DataIngres
     max_balance_index = balance_cells.map { |k, _| k[/\d+$/].to_i }.max
     bank_balance_column_index = column_index(current_sheet, 'balance')
     cell_key = "#{bank_balance_column_index}#{max_balance_index}"
-    current_sheet[:cells][cell_key][:value].gsub(/[\D+.]/, '').to_f/100
+    current_sheet[:cells][cell_key][:value].delete(',').delete('.').to_f / 100
   end
 
   def self.column_index(current_sheet, column_header)
