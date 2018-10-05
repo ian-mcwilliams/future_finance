@@ -40,10 +40,11 @@ module BasicReportGenerator
         key,
         value[:opening_balance],
         value[:closing_balance],
-        value[:minimum_balance]
+        value[:minimum_balance],
+        (value[:closing_balance] - value[:opening_balance]).round(2)
       ]
     end
-    all_arrays = [%w[month opening closing minimum]] + month_summary_arrays
+    all_arrays = [%w[month opening closing minimum delta]] + month_summary_arrays
     formatted_lines(all_arrays, 20) + ['']
   end
 
