@@ -18,19 +18,27 @@ module ReportData
     months = transactions.map { |transaction| transaction[:date].strftime('%y%m') }.uniq
     current_balance = (opening_balance * 100).to_i
     minimum_balance = current_balance
-    months.each_with_object({}) do |month, h|
+    draft_hash_months = months.each_with_object({}) do |month, h|
       h[month] = { opening_balance: current_balance.to_f / 100 }
       raw_month_transactions = transactions.select { |t| t[:date].strftime('%y%m') == month }
       processed_month_transactions = []
       raw_month_transactions.map do |t|
         current_balance += t[:amount].delete(',').delete('.').to_i
         minimum_balance = current_balance if current_balance < minimum_balance
-        processed_month_transactions << { balance: current_balance.to_f / 100 }.merge(t)
+        processed_month_transaction = { balance: current_balance.to_f / 100 }.merge(t)
+        processed_month_transactions << processed_month_transaction
       end
       h[month][:transactions] = processed_month_transactions
       h[month][:closing_balance] = current_balance.to_f / 100
       h[month][:minimum_balance] = minimum_balance.to_f / 100
     end
+    draft_hash_months.values.each do |month|
+      last_transactions = month[:transactions].select { |transaction| transaction[:last] }
+      month[:transactions].delete_if { |transaction| transaction[:last] }
+      month[:transactions].concat(last_transactions)
+      month[:transactions].each { |transaction| transaction.delete(:last) }
+    end
+    draft_hash_months
   end
 
   def self.all_extracted_transactions(raw_transactions)
@@ -97,7 +105,8 @@ module ReportData
       purpose: transaction['purpose'],
       date: current_date,
       description: transaction['description'],
-      amount: transaction['amount']
+      amount: transaction['amount'],
+      last: transaction['payment_date'] == 'last'
     }
   end
 
@@ -130,8 +139,12 @@ module ReportData
   end
 
   def self.next_month_date(start_date, end_date, payment_date)
-    target_string = "#{start_date.strftime('%Y/%m')}/#{payment_date[/\d+/]}"
-    target_date = DateTime.parse(target_string)
+    if payment_date == 'last'
+      target_date = DateTime.new(start_date.year, start_date.month, -1)
+    else
+      target_string = "#{start_date.strftime('%Y/%m')}/#{payment_date[/\d+/]}"
+      target_date = DateTime.parse(target_string)
+    end
     today_date = DateTime.parse(start_date.strftime('%Y/%m/%d'))
     target_date = target_date >= today_date ? target_date : target_date.next_month
     target_date > end_date ? nil : target_date
