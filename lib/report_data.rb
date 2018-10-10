@@ -127,7 +127,7 @@ module ReportData
 
   def self.next_week_date(start_date, end_date, payment_date)
     target_date = start_date
-    target_day = DateTime.parse(payment_date).strftime('u%')
+    target_day = DateTime.parse(payment_date).strftime('%u')
     7.times do
       target_date += 1 unless target_date.strftime('%u') == target_day
     end
