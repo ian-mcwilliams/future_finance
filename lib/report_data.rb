@@ -6,12 +6,20 @@ module ReportData
 
   def self.report_data(source, filename)
     hash_spreadsheet = source.hash_spreadsheet(filename)
-    input_data = {
-      opening_balance: DataIngres.current_balance_from_sheets(hash_spreadsheet),
-      transactions: DataIngres.transactions_from_sheet(hash_spreadsheet)
-    }
-    transactions = all_extracted_transactions(input_data[:transactions])
+    input_data = planner_data(DataIngres.transactions_from_sheet(hash_spreadsheet))
+    transactions = all_extracted_transactions(input_data)
     { months: hash_months(transactions, input_data[:opening_balance]) }
+  end
+
+  def planner_data(transactions)
+    transactions.delete_if { |item| item.values.delete_if(&:empty?).empty? }
+    run_spec = transactions.delete_at(0)
+    {
+      transactions: transactions,
+      start_date: DateTime.parse(run_spec['payee']),
+      end_date: DateTime.parse(run_spec['frequency']),
+      opening_balance: run_spec['position'].delete('.').to_i
+    }
   end
 
   def self.hash_months(transactions, opening_balance)
@@ -55,23 +63,22 @@ module ReportData
     end
   end
 
-  def self.all_extracted_transactions(raw_transactions)
-    transactions = []
-    raw_transactions.each do |raw_transaction|
-      transactions.concat(extracted_transactions(raw_transaction))
+  def self.all_extracted_transactions(input_data)
+    extracted_transactions = []
+    input_data[:transactions].each do |raw_transaction|
+      extracted_transactions.concat(extracted_transactions(raw_transaction, input_data[:start_date], input_data[:end_date]))
     end
-    transactions.sort_by { |item| item[:date] }
+    extracted_transactions.sort_by { |item| item[:date] }
   end
 
-  def self.extracted_transactions(raw_transaction)
-    duration_days = 365
-    today = DateTime.now
+  def self.extracted_transactions(raw_transaction, start_date, end_date)
+    duration_days = (end_date - start_date).to_i
     end_date = DateTime.parse(raw_transaction['final_payment']) unless raw_transaction['final_payment'].empty?
-    end_date ||= today + duration_days
+    end_date ||= start_date + duration_days
     transactions = []
     case raw_transaction['frequency']
     when 'weekly'
-      current_date = today
+      current_date = start_date
       (duration_days / 7).times do
         current_date = next_week_date(current_date, end_date, raw_transaction['payment_date'])
         break if current_date.nil?
@@ -79,7 +86,7 @@ module ReportData
         current_date += 1
       end
     when 'monthly'
-      current_date = today
+      current_date = start_date
       (duration_days / 27).times do
         current_date = next_month_date(current_date, end_date, raw_transaction['payment_date'])
         break if current_date.nil?
@@ -87,7 +94,7 @@ module ReportData
         current_date += 1
       end
     when 'annual'
-      current_date = today
+      current_date = start_date
       (duration_days / 365).times do
         current_date = next_year_date(current_date, end_date, raw_transaction['payment_date'])
         break if current_date.nil?
@@ -95,7 +102,7 @@ module ReportData
         current_date += 1
       end
     when 'quarterly'
-      current_date = today
+      current_date = start_date
       (duration_days / 91).times do
         current_date = next_quarter_date(current_date, end_date, raw_transaction['payment_date'])
         break if current_date.nil?
@@ -103,7 +110,7 @@ module ReportData
         current_date += 1
       end
     when 'one-off'
-      current_date = today
+      current_date = start_date
       target_date = DateTime.parse(raw_transaction['payment_date'])
       if current_date <= target_date && target_date <= end_date
         transactions << transaction_hash(target_date, raw_transaction)
