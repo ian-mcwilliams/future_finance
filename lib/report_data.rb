@@ -49,7 +49,7 @@ module ReportData
   def self.balanced_transactions(draft_hash_months, start_balance)
     current_balance = nil
     draft_hash_months.values.each do |month|
-      opening_balance = current_balance || (start_balance * 100).to_i
+      opening_balance = current_balance || start_balance
       current_balance = opening_balance
       minimum_balance = current_balance
       month[:transactions].each do |transaction|
