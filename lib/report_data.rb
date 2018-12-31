@@ -72,6 +72,9 @@ module ReportData
   end
 
   def self.extracted_transactions(raw_transaction, start_date, end_date)
+    if raw_transaction['purpose'] == 'corporation tax'
+      i=0
+    end
     duration_days = (end_date - start_date).to_i
     end_date = DateTime.parse(raw_transaction['final_payment']) unless raw_transaction['final_payment'].empty?
     end_date ||= start_date + duration_days
@@ -79,7 +82,7 @@ module ReportData
     case raw_transaction['frequency']
     when 'weekly'
       current_date = start_date
-      (duration_days / 7).times do
+      ((duration_days / 7) + 1).times do
         current_date = next_week_date(current_date, end_date, raw_transaction['payment_date'])
         break if current_date.nil?
         transactions << transaction_hash(current_date, raw_transaction)
@@ -87,7 +90,7 @@ module ReportData
       end
     when 'monthly'
       current_date = start_date
-      (duration_days / 27).times do
+      ((duration_days / 27) + 1).times do
         current_date = next_month_date(current_date, end_date, raw_transaction['payment_date'])
         break if current_date.nil?
         transactions << transaction_hash(current_date, raw_transaction)
@@ -95,7 +98,7 @@ module ReportData
       end
     when 'annual'
       current_date = start_date
-      (duration_days / 365).times do
+      ((duration_days / 365) + 1).times do
         current_date = next_year_date(current_date, end_date, raw_transaction['payment_date'])
         break if current_date.nil?
         transactions << transaction_hash(current_date, raw_transaction)
@@ -103,7 +106,7 @@ module ReportData
       end
     when 'quarterly'
       current_date = start_date
-      (duration_days / 91).times do
+      ((duration_days / 91) + 1).times do
         current_date = next_quarter_date(current_date, end_date, raw_transaction['payment_date'])
         break if current_date.nil?
         transactions << transaction_hash(current_date, raw_transaction)
