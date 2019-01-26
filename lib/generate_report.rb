@@ -1,17 +1,29 @@
 require_relative 'report_data'
 require_relative 'google_spreadsheet_wrapper'
 require_relative 'basic_report_generator'
+require_relative 'excel_spreadsheet_wrapper'
+require 'json'
 
 module GenerateReport
-  include ReportData
-  include GoogleSpreadsheetWrapper
-  include BasicReportGenerator
 
-  def self.generate_report(filename)
-    source = GoogleSpreadsheetWrapper
-    report_data = ReportData.report_data(source, filename)
+  def self.generate_report(source, filename, target)
+    source_class = {
+      excel: ExcelSpreadsheetWrapper,
+      google: GoogleSpreadsheetWrapper,
+    }[source.to_sym]
+    parameters = run_parameters(target)
+    report_data = ReportData.report_data(source_class, target, filename, parameters)
     report_lines = BasicReportGenerator.report_lines(report_data)
     BasicReportGenerator.output_report(report_lines)
+  end
+
+  def self.run_parameters(target)
+    raw_params = JSON.parse(File.read('artefacts/parameters.json'))[target]
+    {
+      start_date: DateTime.parse(raw_params['start_date']),
+      end_date: DateTime.parse(raw_params['end_date']),
+      opening_balance: raw_params['opening_balance']
+    }
   end
 
 end
