@@ -71,7 +71,7 @@ module ReportData
       current_date = today
       (duration_days / 7).times do
         current_date = next_week_date(current_date, end_date, raw_transaction['payment_date'])
-        break if current_date.nil?
+        break if current_date.nil? || current_date < parameters[:start_date]
         transactions << transaction_hash(current_date, raw_transaction)
         current_date += 1
       end
@@ -79,7 +79,7 @@ module ReportData
       current_date = today
       (duration_days / 27).times do
         current_date = next_month_date(current_date, end_date, raw_transaction['payment_date'])
-        break if current_date.nil?
+        break if current_date.nil? || current_date < parameters[:start_date]
         transactions << transaction_hash(current_date, raw_transaction)
         current_date += 1
       end
@@ -87,7 +87,7 @@ module ReportData
       current_date = today
       (duration_days / 365).times do
         current_date = next_year_date(current_date, end_date, raw_transaction['payment_date'])
-        break if current_date.nil?
+        break if current_date.nil? || current_date < parameters[:start_date]
         transactions << transaction_hash(current_date, raw_transaction)
         current_date += 1
       end
@@ -95,14 +95,14 @@ module ReportData
       current_date = today
       (duration_days / 91).times do
         current_date = next_quarter_date(current_date, end_date, raw_transaction['payment_date'])
-        break if current_date.nil?
+        break if current_date.nil? || current_date < parameters[:start_date]
         transactions << transaction_hash(current_date, raw_transaction)
         current_date += 1
       end
     when 'one-off'
       current_date = today
       target_date = DateTime.parse(raw_transaction['payment_date'].to_s)
-      if current_date <= target_date && target_date <= end_date
+      if target_date >= parameters[:start_date] && current_date <= target_date && target_date <= end_date
         transactions << transaction_hash(target_date, raw_transaction)
       end
     end
