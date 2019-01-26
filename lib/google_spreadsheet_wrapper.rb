@@ -1,7 +1,5 @@
 require 'awesome_print'
 require 'bundler'
-require 'rubyXL'
-Bundler.require
 
 module GoogleSpreadsheetWrapper
   def self.hash_spreadsheet(google_filename)
