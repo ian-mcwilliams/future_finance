@@ -4,13 +4,13 @@ require_relative 'data_ingres'
 module ReportData
   include DataIngres
 
-  def self.report_data(source, filename)
-    hash_spreadsheet = source.hash_spreadsheet(filename)
+  def self.report_data(source, target, filename, parameters)
+    hash_spreadsheet = source.hash_spreadsheet(filename, target)
     input_data = {
-      opening_balance: DataIngres.current_balance_from_sheets(hash_spreadsheet),
+      opening_balance: parameters[:opening_balance],
       transactions: DataIngres.transactions_from_sheet(hash_spreadsheet)
     }
-    transactions = all_extracted_transactions(input_data[:transactions])
+    transactions = all_extracted_transactions(input_data[:transactions], parameters)
     { months: hash_months(transactions, input_data[:opening_balance]) }
   end
 
@@ -45,7 +45,7 @@ module ReportData
       current_balance = opening_balance
       minimum_balance = current_balance
       month[:transactions].each do |transaction|
-        current_balance += (transaction[:amount].delete(',').to_f * 100).to_i
+        current_balance += (transaction[:amount].to_s.delete(',').to_f * 100).to_i
         minimum_balance = current_balance if current_balance < minimum_balance
         transaction[:balance] = current_balance.to_f / 100
       end
@@ -55,19 +55,19 @@ module ReportData
     end
   end
 
-  def self.all_extracted_transactions(raw_transactions)
+  def self.all_extracted_transactions(raw_transactions, parameters)
     transactions = []
     raw_transactions.each do |raw_transaction|
-      transactions.concat(extracted_transactions(raw_transaction))
+      transactions.concat(extracted_transactions(raw_transaction, parameters))
     end
     transactions.sort_by { |item| item[:date] }
   end
 
-  def self.extracted_transactions(raw_transaction)
-    duration_days = 365
+  def self.extracted_transactions(raw_transaction, parameters)
+    duration_days = (parameters[:end_date] - parameters[:start_date]).to_i
     today = DateTime.now
-    end_date = DateTime.parse(raw_transaction['final_payment']) unless raw_transaction['final_payment'].empty?
-    end_date ||= today + duration_days
+    end_date = DateTime.parse(raw_transaction['final_payment']) unless raw_transaction['final_payment'].nil? || raw_transaction['final_payment'].empty?
+    end_date ||= parameters[:end_date]
     transactions = []
     case raw_transaction['frequency']
     when 'weekly'
@@ -104,7 +104,7 @@ module ReportData
       end
     when 'one-off'
       current_date = today
-      target_date = DateTime.parse(raw_transaction['payment_date'])
+      target_date = DateTime.parse(raw_transaction['payment_date'].to_s)
       if current_date <= target_date && target_date <= end_date
         transactions << transaction_hash(target_date, raw_transaction)
       end
