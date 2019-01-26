@@ -32,13 +32,19 @@ module DataIngres
     row_max = hash_sheet[:cells].keys.map { |k| k[/\d+/].to_i }.max
     (2..row_max).map do |row_id|
       current_row = hash_sheet[:cells].select { |k, _| k =~ /^\D#{Regexp.quote(row_id.to_s)}$/ }
-      # ap current_row
       current_hash = headers.each_with_object({}) do |(cell_key, cell), h|
         target_cell_key = "#{cell_key[/^\D+/]}#{row_id}"
-        h[cell[:value]] = current_row[target_cell_key][:value]
+        h[cell[:value]] = cell_value(current_row, target_cell_key, cell[:value])
       end
       current_hash
     end
+  end
+
+  def self.cell_value(row, cell_key, header)
+    return row[cell_key][:value] if header != 'amount' || row[cell_key][:value].nil?
+    value = row[cell_key][:value].to_s.to_f.round(2).to_s
+    (value.length - 1 - value.index('.')).times { value << '0' }
+    value
   end
 
   def self.transactions_from_sheet(hash_spreadsheet)
