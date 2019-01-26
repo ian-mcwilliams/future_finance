@@ -4,14 +4,11 @@ require_relative 'data_ingres'
 module ReportData
   include DataIngres
 
-  def self.report_data(source, target, filename, parameters)
-    hash_spreadsheet = source.hash_spreadsheet(filename, target)
-    input_data = {
-      opening_balance: parameters[:opening_balance],
-      transactions: DataIngres.transactions_from_sheet(hash_spreadsheet)
-    }
-    transactions = all_extracted_transactions(input_data[:transactions], parameters)
-    { months: hash_months(transactions, input_data[:opening_balance]) }
+  def self.report_data(source, params)
+    hash_spreadsheet = source.hash_spreadsheet(params)
+    source_transactions = DataIngres.transactions_from_sheet(hash_spreadsheet)
+    transactions = all_extracted_transactions(source_transactions, params)
+    { months: hash_months(transactions, params[:opening_balance]) }
   end
 
   def self.hash_months(transactions, opening_balance)
