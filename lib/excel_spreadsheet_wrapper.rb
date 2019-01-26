@@ -7,7 +7,7 @@ module ExcelSpreadsheetWrapper
   end
 
   def self.excel_spreadsheet(filename)
-    SimpleXlsxReader.open(filename)
+    SimpleXlsxReader.open("artefacts/#{filename}.xlsx")
   end
 
   def self.excel_spreadsheet_to_hash_spreadsheet(raw_spreadsheet, target)
