@@ -43,7 +43,7 @@ module DataIngres
   def self.cell_value(row, cell_key, header)
     return row[cell_key][:value] if header != 'amount' || row[cell_key][:value].nil?
     value = row[cell_key][:value].to_s.to_f.round(2).to_s
-    (value.length - 1 - value.index('.')).times { value << '0' }
+    (2 - (value.length - 1 - value.index('.'))).times { value << '0' }
     value
   end
 
