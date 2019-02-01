@@ -6,8 +6,8 @@ require 'json'
 
 module GenerateReport
 
-  def self.generate_report(target)
-    params = run_parameters(target)
+  def self.generate_report
+    params = run_parameters
     source = {
       excel: ExcelSpreadsheetWrapper,
       google: GoogleSpreadsheetWrapper,
@@ -17,8 +17,9 @@ module GenerateReport
     BasicReportGenerator.output_report(report_lines)
   end
 
-  def self.run_parameters(target)
-    raw_params = JSON.parse(File.read('artefacts/parameters.json'))[target]
+  def self.run_parameters
+    params_hash = JSON.parse(File.read('artefacts/parameters.json'))
+    raw_params = params_hash[params_hash['run']]
     {
       start_date: DateTime.parse(raw_params['start_date']),
       end_date: DateTime.parse(raw_params['end_date']),
