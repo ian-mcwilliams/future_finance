@@ -45,7 +45,11 @@ module BasicReportGenerator
       ]
     end
     all_arrays = [%w[month opening closing minimum delta]] + month_summary_arrays
-    formatted_lines(all_arrays, 20) + ['']
+    formatted_arrays = formatted_lines(all_arrays, 20) + ['']
+    total_delta = (month_summary_arrays.map { |item| item[4] }.inject(0, :+)).round(2)
+    average_delta = (total_delta / month_summary_arrays.count).round(2)
+    formatted_arrays << ["TOTAL DELTA: #{total_delta}, AVERAGE DELTA: #{average_delta}"]
+    formatted_arrays << ['']
   end
 
   def self.month_lines(month, month_data)

@@ -11,6 +11,17 @@ module ReportData
     { months: hash_months(transactions, params[:opening_balance]) }
   end
 
+  def planner_data(transactions)
+    transactions.delete_if { |item| item.values.delete_if(&:empty?).empty? }
+    run_spec = transactions.delete_at(0)
+    {
+      transactions: transactions,
+      start_date: DateTime.parse(run_spec['payee']),
+      end_date: DateTime.parse(run_spec['frequency']),
+      opening_balance: run_spec['position'].delete('.').to_i
+    }
+  end
+
   def self.hash_months(transactions, opening_balance)
     months = transactions.map { |transaction| transaction[:date].strftime('%y%m') }.uniq
     draft_hash_months = months.each_with_object({}) do |month, h|
@@ -38,7 +49,7 @@ module ReportData
   def self.balanced_transactions(draft_hash_months, start_balance)
     current_balance = nil
     draft_hash_months.values.each do |month|
-      opening_balance = current_balance || (start_balance * 100).to_i
+      opening_balance = current_balance || start_balance
       current_balance = opening_balance
       minimum_balance = current_balance
       month[:transactions].each do |transaction|
@@ -57,7 +68,7 @@ module ReportData
     raw_transactions.each do |raw_transaction|
       transactions.concat(extracted_transactions(raw_transaction, parameters))
     end
-    transactions.sort_by { |item| item[:date] }
+    extracted_transactions.sort_by { |item| item[:date] }
   end
 
   def self.extracted_transactions(raw_transaction, parameters)
@@ -68,39 +79,39 @@ module ReportData
     transactions = []
     case raw_transaction['frequency']
     when 'weekly'
-      current_date = today
-      (duration_days / 7).times do
+      current_date = start_date
+      ((duration_days / 7) + 1).times do
         current_date = next_week_date(current_date, end_date, raw_transaction['payment_date'])
         break if current_date.nil? || current_date < parameters[:start_date]
         transactions << transaction_hash(current_date, raw_transaction)
         current_date += 1
       end
     when 'monthly'
-      current_date = today
-      (duration_days / 27).times do
+      current_date = start_date
+      ((duration_days / 27) + 1).times do
         current_date = next_month_date(current_date, end_date, raw_transaction['payment_date'])
         break if current_date.nil? || current_date < parameters[:start_date]
         transactions << transaction_hash(current_date, raw_transaction)
         current_date += 1
       end
     when 'annual'
-      current_date = today
-      (duration_days / 365).times do
+      current_date = start_date
+      ((duration_days / 365) + 1).times do
         current_date = next_year_date(current_date, end_date, raw_transaction['payment_date'])
         break if current_date.nil? || current_date < parameters[:start_date]
         transactions << transaction_hash(current_date, raw_transaction)
         current_date += 1
       end
     when 'quarterly'
-      current_date = today
-      (duration_days / 91).times do
+      current_date = start_date
+      ((duration_days / 91) + 1).times do
         current_date = next_quarter_date(current_date, end_date, raw_transaction['payment_date'])
         break if current_date.nil? || current_date < parameters[:start_date]
         transactions << transaction_hash(current_date, raw_transaction)
         current_date += 1
       end
     when 'one-off'
-      current_date = today
+      current_date = start_date
       target_date = DateTime.parse(raw_transaction['payment_date'].to_s)
       if target_date >= parameters[:start_date] && current_date <= target_date && target_date <= end_date
         transactions << transaction_hash(target_date, raw_transaction)
