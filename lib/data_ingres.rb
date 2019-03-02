@@ -28,10 +28,10 @@ module DataIngres
   end
 
   def self.table_sheet_to_hash_array(hash_sheet)
-    headers = hash_sheet[:cells].select { |k, _| k =~ /^\D+1$/ }
-    row_max = hash_sheet[:cells].keys.map { |k| k[/\d+/].to_i }.max
+    headers = hash_sheet.select { |k, _| k =~ /^\D+1$/ }
+    row_max = hash_sheet.keys.map { |k| k[/\d+/].to_i }.max
     (2..row_max).map do |row_id|
-      current_row = hash_sheet[:cells].select { |k, _| k =~ /^\D#{Regexp.quote(row_id.to_s)}$/ }
+      current_row = hash_sheet.select { |k, _| k =~ /^\D#{Regexp.quote(row_id.to_s)}$/ }
       current_hash = headers.each_with_object({}) do |(cell_key, cell), h|
         target_cell_key = "#{cell_key[/^\D+/]}#{row_id}"
         h[cell[:value]] = cell_value(current_row, target_cell_key, cell[:value])
@@ -41,15 +41,17 @@ module DataIngres
   end
 
   def self.cell_value(row, cell_key, header)
+    return nil unless row.has_key?(cell_key)
     return row[cell_key][:value] if header != 'amount' || row[cell_key][:value].nil?
     value = row[cell_key][:value].to_s.to_f.round(2).to_s
     (2 - (value.length - 1 - value.index('.'))).times { value << '0' }
     value
   end
 
-  def self.transactions_from_sheet(hash_spreadsheet)
-    planner_sheet = hash_spreadsheet['planner']
-    table_sheet_to_hash_array(planner_sheet)
+  def self.transactions_from_sheets(hash_spreadsheets)
+    hash_spreadsheets.each_with_object([]) do |(sheet_name, hash_spreadsheet), a|
+      a.concat(table_sheet_to_hash_array(hash_spreadsheet))
+    end
   end
 
 end

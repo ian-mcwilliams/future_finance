@@ -5,8 +5,8 @@ module ReportData
   include DataIngres
 
   def self.report_data(source, params)
-    hash_spreadsheet = source.hash_spreadsheet(params)
-    source_transactions = DataIngres.transactions_from_sheet(hash_spreadsheet)
+    hash_spreadsheets = source.hash_spreadsheet(params)
+    source_transactions = DataIngres.transactions_from_sheets(hash_spreadsheets)
     transactions = all_extracted_transactions(source_transactions, params)
     { months: hash_months(transactions, params[:opening_balance]) }
   end
@@ -49,7 +49,7 @@ module ReportData
   def self.balanced_transactions(draft_hash_months, start_balance)
     current_balance = nil
     draft_hash_months.values.each do |month|
-      opening_balance = current_balance || start_balance
+      opening_balance = current_balance || (start_balance * 100).to_i
       current_balance = opening_balance
       minimum_balance = current_balance
       month[:transactions].each do |transaction|
@@ -68,13 +68,18 @@ module ReportData
     raw_transactions.each do |raw_transaction|
       transactions.concat(extracted_transactions(raw_transaction, parameters))
     end
-    extracted_transactions.sort_by { |item| item[:date] }
+    transactions.sort_by { |item| item[:date] }
   end
 
   def self.extracted_transactions(raw_transaction, parameters)
     duration_days = (parameters[:end_date] - parameters[:start_date]).to_i
-    today = DateTime.now
-    end_date = DateTime.parse(raw_transaction['final_payment']) unless raw_transaction['final_payment'].nil? || raw_transaction['final_payment'].empty?
+    start_date = DateTime.now
+    start_date = parameters[:start_date] if parameters[:start_date] < start_date
+    if raw_transaction[:final_payment].is_a?(String)
+      end_date = DateTime.parse(raw_transaction['final_payment'])
+    elsif raw_transaction[:final_payment].is_a?(Date)
+      end_date = raw_transaction[:final_payment]
+    end
     end_date ||= parameters[:end_date]
     transactions = []
     case raw_transaction['frequency']
