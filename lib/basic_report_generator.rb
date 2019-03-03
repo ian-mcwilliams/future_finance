@@ -38,17 +38,17 @@ module BasicReportGenerator
     report_data[:months].each do |key, value|
       month_summary_arrays << [
         key,
-        value[:opening_balance],
-        value[:closing_balance],
-        value[:minimum_balance],
+        two_decimal_number_string(value[:opening_balance]),
+        two_decimal_number_string(value[:closing_balance]),
+        two_decimal_number_string(value[:minimum_balance]),
         (value[:closing_balance] - value[:opening_balance]).round(2)
       ]
     end
     all_arrays = [%w[month opening closing minimum delta]] + month_summary_arrays
     formatted_arrays = formatted_lines(all_arrays, 20) + ['']
     total_delta = (month_summary_arrays.map { |item| item[4] }.inject(0, :+)).round(2)
-    average_delta = (total_delta / month_summary_arrays.count).round(2)
-    formatted_arrays << ["TOTAL DELTA: #{total_delta}, AVERAGE DELTA: #{average_delta}"]
+    average_delta = two_decimal_number_string((total_delta / month_summary_arrays.count).round(2))
+    formatted_arrays << ["TOTAL DELTA: #{two_decimal_number_string(total_delta)}, AVERAGE DELTA: #{average_delta}"]
     formatted_arrays << ['']
   end
 
@@ -60,8 +60,8 @@ module BasicReportGenerator
         transaction[:payee],
         transaction[:purpose],
         transaction[:description],
-        transaction[:amount],
-        transaction[:balance]
+        two_decimal_number_string(transaction[:amount]),
+        two_decimal_number_string(transaction[:balance])
       ]
     end
     all_arrays = [
@@ -71,6 +71,14 @@ module BasicReportGenerator
     all_arrays += [%w[date type payee purpose description amount balance]]
     all_arrays.concat(month_data_array)
     formatted_lines(all_arrays, 20)
+  end
+
+  def self.two_decimal_number_string(input)
+    new_string = input.to_s
+    return "#{new_string}.00" unless new_string.index('.')
+    decimal_length = new_string[new_string.index('.') + 1..-1].length
+    raise("more than two decimal places given for output value: #{input}") if decimal_length > 2
+    "#{new_string}#{'0' * (2 - decimal_length)}"
   end
 
   def self.report_header_lines
