@@ -169,7 +169,16 @@ module ReportData
     if payment_date == 'last'
       target_date = DateTime.new(start_date.year, start_date.month, -1)
     else
-      target_string = "#{start_date.strftime('%Y/%m')}/#{payment_date[/\d+/]}"
+      target_year = start_date.strftime('%Y')
+      target_month = start_date.strftime('%m')
+      target_dom = payment_date[/\d+/]
+      if (%w[02 04 06 09 11].include?(target_month) && target_dom == '31') ||
+        (target_month == '02' && target_dom == '30') ||
+        (target_month == '02' && target_dom == '29' && !Date.leap?(target_year.to_i))
+        target_dom = '01'
+        target_month = "#{target_month[0]}#{target_month[1].to_i + 1}"
+      end
+      target_string = "#{target_year}/#{target_month}/#{target_dom}"
       target_date = DateTime.parse(target_string)
     end
     today_date = DateTime.parse(start_date.strftime('%Y/%m/%d'))
