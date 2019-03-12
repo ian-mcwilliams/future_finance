@@ -72,15 +72,14 @@ module ReportData
   end
 
   def self.extracted_transactions(raw_transaction, parameters)
-    duration_days = (parameters[:end_date] - parameters[:start_date]).to_i
-    start_date = DateTime.now
-    start_date = parameters[:start_date] if parameters[:start_date] < start_date
-    if raw_transaction[:final_payment].is_a?(String)
-      end_date = DateTime.parse(raw_transaction['final_payment'])
-    elsif raw_transaction[:final_payment].is_a?(Date)
-      end_date = raw_transaction[:final_payment]
-    end
-    end_date ||= parameters[:end_date]
+    # set the start and end date and calculate the number of days
+    start_date = raw_transaction['start_date'] ? raw_transaction['start_date'] : parameters[:start_date]
+    start_date = DateTime.parse(start_date) if start_date.is_a?(String)
+    end_date = raw_transaction['final_payment'] ? raw_transaction['final_payment'] : parameters[:end_date]
+    end_date = DateTime.parse(end_date) if end_date.is_a?(String)
+    duration_days = (end_date - start_date).to_i
+
+    # extract the transactions
     transactions = []
     case raw_transaction['frequency']
     when 'weekly'
