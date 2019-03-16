@@ -7,12 +7,13 @@ module SummaryData
       closing = month[:transactions][-1][:balance]
       minimum = month[:transactions].map { |transaction| transaction[:balance] }.min
       minimum = opening if opening < minimum
+      delta = ((closing * 100).to_i - (opening * 100).to_i).to_f / 100
       {
         month: key,
         opening: opening,
         minimum: minimum,
         closing: closing,
-        delta: closing - opening
+        delta: delta
       }
     end
   end

@@ -29,15 +29,10 @@ module MonthsData
     draft_hash_months.values.each do |month|
       opening_balance = current_balance || (start_balance * 100).to_i
       current_balance = opening_balance
-      minimum_balance = current_balance
       month[:transactions].each do |transaction|
         current_balance += (transaction[:amount].to_s.delete(',').to_f * 100).to_i
-        minimum_balance = current_balance if current_balance < minimum_balance
         transaction[:balance] = current_balance.to_f / 100
       end
-      month[:opening_balance] = opening_balance.to_f / 100
-      month[:closing_balance] = current_balance.to_f / 100
-      month[:minimum_balance] = minimum_balance.to_f / 100
     end
   end
 

@@ -35,18 +35,18 @@ module BasicReportGenerator
 
   def self.summary_lines(report_data)
     month_summary_arrays = []
-    report_data[:months].each do |key, value|
+    report_data[:months_summary].each do |month|
       month_summary_arrays << [
-        key,
-        two_decimal_number_string(value[:opening_balance]),
-        two_decimal_number_string(value[:closing_balance]),
-        two_decimal_number_string(value[:minimum_balance]),
-        (value[:closing_balance] - value[:opening_balance]).round(2)
+        month[:month],
+        two_decimal_number_string(month[:opening]),
+        two_decimal_number_string(month[:closing]),
+        two_decimal_number_string(month[:minimum]),
+        two_decimal_number_string(month[:delta])
       ]
     end
     all_arrays = [%w[month opening closing minimum delta]] + month_summary_arrays
     formatted_arrays = formatted_lines(all_arrays, 20) + ['']
-    total_delta = (month_summary_arrays.map { |item| item[4] }.inject(0, :+)).round(2)
+    total_delta = (month_summary_arrays.map { |item| item[4].to_f }.inject(0, :+)).round(2)
     average_delta = two_decimal_number_string((total_delta / month_summary_arrays.count).round(2))
     formatted_arrays << ["TOTAL DELTA: #{two_decimal_number_string(total_delta)}, AVERAGE DELTA: #{average_delta}"]
     formatted_arrays << ['']
