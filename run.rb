@@ -8,4 +8,8 @@ source = {
   google: GoogleSpreadsheetWrapper,
 }[params[:source].to_sym]
 
-GenerateReport.generate_report(params, source)
+destination = {
+  basic: BasicReportGenerator
+}[params[:destination].to_sym]
+
+GenerateReport.generate_report(params, source, destination)

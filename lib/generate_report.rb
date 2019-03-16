@@ -5,10 +5,10 @@ require_relative 'excel_spreadsheet_wrapper'
 
 module GenerateReport
 
-  def self.generate_report(params, source)
+  def self.generate_report(params, source, destination)
     report_data = ReportData.report_data(source, params)
-    report_lines = BasicReportGenerator.report_lines(report_data)
-    BasicReportGenerator.output_report(report_lines)
+    report_object = destination.report_object(report_data)
+    destination.output_report(report_object)
   end
 
 end

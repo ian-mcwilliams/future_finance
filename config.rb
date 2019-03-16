@@ -10,6 +10,7 @@ module Config
       end_date: DateTime.parse(raw_params['end_date']),
       opening_balance: raw_params['opening_balance'],
       source: raw_params['source'],
+      destination: params_hash['output'],
       filename: raw_params['filename'],
       sheet_names: raw_params['sheet_names']
     }

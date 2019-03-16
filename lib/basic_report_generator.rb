@@ -10,7 +10,7 @@ module BasicReportGenerator
     file.write(report_lines.join("\n"))
   end
 
-  def self.report_lines(report_data)
+  def self.report_object(report_data)
     report_lines = report_header_lines + summary_header_lines +
                    summary_lines(report_data) + month_section_header_lines
     report_data[:months].each do |key, value|
