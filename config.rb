@@ -2,9 +2,9 @@ require 'yaml'
 
 module Config
 
-  def self.run_parameters
+  def self.run_parameters(run = nil)
     params_hash = YAML.load_file('artefacts/parameters.yml')
-    raw_params = params_hash[params_hash['run']]
+    raw_params = params_hash[run || params_hash['run']]
     {
       start_date: DateTime.parse(raw_params['start_date']),
       end_date: DateTime.parse(raw_params['end_date']),
