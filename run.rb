@@ -3,4 +3,9 @@ require_relative 'lib/generate_report'
 
 params = Config.run_parameters
 
-GenerateReport.generate_report(params)
+source = {
+  excel: ExcelSpreadsheetWrapper,
+  google: GoogleSpreadsheetWrapper,
+}[params[:source].to_sym]
+
+GenerateReport.generate_report(params, source)

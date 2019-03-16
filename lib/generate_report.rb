@@ -5,11 +5,7 @@ require_relative 'excel_spreadsheet_wrapper'
 
 module GenerateReport
 
-  def self.generate_report(params)
-    source = {
-      excel: ExcelSpreadsheetWrapper,
-      google: GoogleSpreadsheetWrapper,
-    }[params[:source].to_sym]
+  def self.generate_report(params, source)
     report_data = ReportData.report_data(source, params)
     report_lines = BasicReportGenerator.report_lines(report_data)
     BasicReportGenerator.output_report(report_lines)
