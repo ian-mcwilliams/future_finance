@@ -12,9 +12,6 @@ source = {
   google: GoogleSpreadsheetWrapper,
 }[params[:source].to_sym]
 
-destination = {
-  basic: BasicReportGenerator,
-  excel: ExcelReportGenerator
-}[params[:destination].to_sym]
+destinations = [BasicReportGenerator, ExcelReportGenerator]
 
-GenerateReport.generate_report(params, source, destination)
+GenerateReport.generate_report(params, source, destinations)
