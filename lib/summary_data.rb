@@ -6,6 +6,7 @@ module SummaryData
       opening = closing || opening_balance
       closing = month[:transactions][-1][:balance]
       minimum = month[:transactions].map { |transaction| transaction[:balance] }.min
+      minimum = opening if opening < minimum
       {
         month: key,
         opening: opening,
