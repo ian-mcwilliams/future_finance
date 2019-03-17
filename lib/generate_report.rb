@@ -1,4 +1,6 @@
 require_relative 'report_data'
+require_relative 'basic_report_generator'
+require_relative 'excel_report_generator'
 
 module GenerateReport
 
@@ -9,6 +11,20 @@ module GenerateReport
       report_object = destination.report_object(report_data)
       destination.output_report(report_object, params[:save_filepath])
     end
+  end
+
+  def self.personal_report(personal_report_data, income_report_data, save_filepath)
+    Dir.mkdir('reports') unless File.directory?('reports')
+    personal = ExcelReportGenerator.report_object(personal_report_data)
+    income = ExcelReportGenerator.report_object(income_report_data)
+    combined_report_object = {
+      'full_summary' => personal.delete('months_summary'),
+      'income_summary' => income['months_summary'],
+      'full_months' => personal.delete('all_months'),
+      'income_months' => income['all_months']
+    }
+    combined_report_object.merge!(personal)
+    ExcelReportGenerator.output_report(combined_report_object, save_filepath)
   end
 
 end
