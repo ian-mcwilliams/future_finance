@@ -23,54 +23,58 @@ module TransactionExtractor
     transactions.sort_by { |item| item[:date] }
   end
 
-  def self.extracted_transactions(raw_transaction, parameters)
+  def self.extracted_transactions(raw_trans, params)
     # set the start and end date and calculate the number of days
-    start_date = raw_transaction['start_date'] ? raw_transaction['start_date'] : parameters[:start_date]
+    start_date = raw_trans['start_date'] ? DateTime.parse(raw_trans['start_date']) : params[:start_date]
     start_date = DateTime.parse(start_date) if start_date.is_a?(String)
-    end_date = raw_transaction['final_payment'] ? raw_transaction['final_payment'] : parameters[:end_date]
+    start_date = start_date.between?(params[:start_date], params[:end_date]) ? start_date : params[:start_date]
+
+    end_date = raw_trans['end_date'] ? DateTime.parse(raw_trans['end_date']) : params[:end_date]
     end_date = DateTime.parse(end_date) if end_date.is_a?(String)
+    end_date = end_date.between?(params[:start_date], params[:end_date]) ? end_date : params[:end_date]
+
     duration_days = (end_date - start_date).to_i
 
     # extract the transactions
     transactions = []
-    case raw_transaction['frequency']
+    case raw_trans['frequency']
     when 'weekly'
       current_date = start_date
       ((duration_days / 7) + 1).times do
-        current_date = next_week_date(current_date, end_date, raw_transaction['payment_date'])
-        break if current_date.nil? || current_date < parameters[:start_date]
-        transactions << transaction_hash(current_date, raw_transaction)
+        current_date = next_week_date(current_date, end_date, raw_trans['payment_date'])
+        break if current_date.nil? || current_date < params[:start_date]
+        transactions << transaction_hash(current_date, raw_trans)
         current_date += 1
       end
     when 'monthly'
       current_date = start_date
       ((duration_days / 27) + 1).times do
-        current_date = next_month_date(current_date, end_date, raw_transaction['payment_date'])
-        break if current_date.nil? || current_date < parameters[:start_date]
-        transactions << transaction_hash(current_date, raw_transaction)
+        current_date = next_month_date(current_date, end_date, raw_trans['payment_date'])
+        break if current_date.nil? || current_date < params[:start_date]
+        transactions << transaction_hash(current_date, raw_trans)
         current_date += 1
       end
     when 'annual'
       current_date = start_date
       ((duration_days / 365) + 1).times do
-        current_date = next_year_date(current_date, end_date, raw_transaction['payment_date'])
-        break if current_date.nil? || current_date < parameters[:start_date]
-        transactions << transaction_hash(current_date, raw_transaction)
+        current_date = next_year_date(current_date, end_date, raw_trans['payment_date'])
+        break if current_date.nil? || current_date < params[:start_date]
+        transactions << transaction_hash(current_date, raw_trans)
         current_date += 1
       end
     when 'quarterly'
       current_date = start_date
       ((duration_days / 91) + 1).times do
-        current_date = next_quarter_date(current_date, end_date, raw_transaction['payment_date'])
-        break if current_date.nil? || current_date < parameters[:start_date]
-        transactions << transaction_hash(current_date, raw_transaction)
+        current_date = next_quarter_date(current_date, end_date, raw_trans['payment_date'])
+        break if current_date.nil? || current_date < params[:start_date]
+        transactions << transaction_hash(current_date, raw_trans)
         current_date += 1
       end
     when 'one-off'
       current_date = start_date
-      target_date = DateTime.parse(raw_transaction['payment_date'].to_s)
-      if target_date >= parameters[:start_date] && current_date <= target_date && target_date <= end_date
-        transactions << transaction_hash(target_date, raw_transaction)
+      target_date = DateTime.parse(raw_trans['payment_date'].to_s)
+      if target_date >= params[:start_date] && current_date <= target_date && target_date <= end_date
+        transactions << transaction_hash(target_date, raw_trans)
       end
     end
     transactions
