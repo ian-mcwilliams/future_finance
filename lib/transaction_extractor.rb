@@ -10,8 +10,9 @@ module TransactionExtractor
       date: current_date,
       description: transaction['description'],
       amount: transaction['amount'],
+      position: transaction['position'],
       last: transaction['payment_date'] == 'last',
-      first: transaction['position'] == 'first'
+      first: transaction['payment_date'] == 'first'
     }
   end
 
@@ -20,7 +21,13 @@ module TransactionExtractor
     raw_transactions.each do |raw_transaction|
       transactions.concat(extracted_transactions(raw_transaction, parameters))
     end
-    transactions.sort_by { |item| item[:date] }
+    transactions.sort_by { |item| [item[:date], position_priority(item[:position])] }
+  end
+
+  def self.position_priority(position)
+    priority = { first: 1, none: 2, last: 3 }[(position || 'none').to_sym]
+    raise("priority value '#{priority}' is not valid") unless priority
+    priority
   end
 
   def self.extracted_transactions(raw_trans, params)
