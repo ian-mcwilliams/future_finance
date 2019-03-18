@@ -25,11 +25,12 @@ module TransactionExtractor
 
   def self.extracted_transactions(raw_trans, params)
     # set the start and end date and calculate the number of days
-    start_date = raw_trans['start_date'] ? DateTime.parse(raw_trans['start_date']) : params[:start_date]
+    start_date = raw_trans['start_date'] || params[:start_date]
     start_date = DateTime.parse(start_date) if start_date.is_a?(String)
+    return [] if start_date > params[:end_date]
     start_date = start_date.between?(params[:start_date], params[:end_date]) ? start_date : params[:start_date]
 
-    end_date = raw_trans['end_date'] ? DateTime.parse(raw_trans['end_date']) : params[:end_date]
+    end_date = raw_trans['end_date'] || params[:end_date]
     end_date = DateTime.parse(end_date) if end_date.is_a?(String)
     end_date = end_date.between?(params[:start_date], params[:end_date]) ? end_date : params[:end_date]
 
