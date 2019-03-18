@@ -5,6 +5,7 @@ module ExcelReportGenerator
   def self.report_object(report_data)
     report = {
       'months_summary' => months_summary(report_data),
+      'sheets_summary' => sheets_summary(report_data),
       'all_months' => all_months(report_data)
     }
     report.merge!(month_sheets(report_data))
@@ -13,6 +14,17 @@ module ExcelReportGenerator
 
   def self.output_report(hash_tables, filepath)
     Rxl.write_file_as_tables(filepath, hash_tables)
+  end
+
+  def self.sheets_summary(report_data)
+    columns = %i[sheet_name income expenditure balance]
+    formats = {
+      headers: header_formats,
+      'B' => { format: :number, decimals: 2 },
+      'C' => { format: :number, decimals: 2 },
+      'D' => { format: :number, decimals: 2 }
+    }
+    { columns: columns, formats: formats, rows: report_data[:sheets_summary] }
   end
 
   def self.months_summary(report_data)

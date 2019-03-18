@@ -3,6 +3,7 @@ module TransactionExtractor
   def self.transaction_hash(current_date, transaction)
     {
       month: current_date.strftime('%y%m'),
+      sheet_name: transaction['sheet_name'],
       type: transaction['type'],
       payee: transaction['payee'],
       purpose: transaction['purpose'],

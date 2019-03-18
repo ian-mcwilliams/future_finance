@@ -18,8 +18,9 @@ module GenerateReport
     personal = ExcelReportGenerator.report_object(personal_report_data)
     income = ExcelReportGenerator.report_object(income_report_data)
     combined_report_object = {
-      'summary' => personal.delete('months_summary'),
-      'transactions' => personal.delete('all_months'),
+      'months_summary' => personal.delete('months_summary'),
+      'sheets_summary' => personal.delete('sheets_summary'),
+      'all_transactions' => personal.delete('all_months'),
       'income_summary' => income['months_summary'],
       'income_transactions' => income['all_months']
     }

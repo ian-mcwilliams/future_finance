@@ -27,7 +27,7 @@ module DataIngres
     cell_keys[0][/^\D+/]
   end
 
-  def self.table_sheet_to_hash_array(hash_sheet)
+  def self.table_sheet_to_hash_array(hash_sheet, sheet_name)
     headers = hash_sheet.select { |k, _| k =~ /^\D+1$/ }
     row_max = hash_sheet.keys.map { |k| k[/\d+/].to_i }.max
     (2..row_max).map do |row_id|
@@ -36,6 +36,7 @@ module DataIngres
         target_cell_key = "#{cell_key[/^\D+/]}#{row_id}"
         h[cell[:value]] = cell_value(current_row, target_cell_key, cell[:value])
       end
+      current_hash['sheet_name'] = sheet_name
       current_hash
     end
   end
@@ -50,7 +51,7 @@ module DataIngres
 
   def self.transactions_from_sheets(hash_spreadsheets)
     hash_spreadsheets.each_with_object([]) do |(sheet_name, hash_spreadsheet), a|
-      a.concat(table_sheet_to_hash_array(hash_spreadsheet))
+      a.concat(table_sheet_to_hash_array(hash_spreadsheet, sheet_name))
     end
   end
 

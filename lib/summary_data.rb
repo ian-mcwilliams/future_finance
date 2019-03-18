@@ -18,4 +18,18 @@ module SummaryData
     end
   end
 
+  def self.sheets_summary(transactions, sheet_names)
+    sheet_names.map do |sheet_name|
+      amounts = transactions.select { |t| t[:sheet_name] == sheet_name }.map { |t| t[:amount].to_f }
+      income = amounts.select { |amount| amount > 0 }.map { |amount| amount * 100.to_i }.reduce(:+).to_f / 100
+      expenditure = amounts.select { |amount| amount < 0 }.map { |amount| amount * 100.to_i }.reduce(:+).to_f / 100
+      {
+        sheet_name: sheet_name,
+        income: income,
+        expenditure: expenditure,
+        balance: ((income * 100).to_i + (expenditure * 100).to_i).to_f / 100
+      }
+    end
+  end
+
 end
