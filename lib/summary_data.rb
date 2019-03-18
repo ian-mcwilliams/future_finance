@@ -32,4 +32,19 @@ module SummaryData
     end
   end
 
+  def self.payee_summary(transactions)
+    payees = transactions.map { |t| t[:payee] }.uniq
+    payees.map do |payee|
+      amounts = transactions.select { |t| t[:payee] == payee }.map { |t| t[:amount].to_f }
+      income = amounts.select { |amount| amount > 0 }.map { |amount| amount * 100.to_i }.reduce(:+).to_f / 100
+      expenditure = amounts.select { |amount| amount < 0 }.map { |amount| amount * 100.to_i }.reduce(:+).to_f / 100
+      {
+        payee_name: payee,
+        income: income,
+        expenditure: expenditure,
+        balance: ((income * 100).to_i + (expenditure * 100).to_i).to_f / 100
+      }
+    end
+  end
+
 end

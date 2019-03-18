@@ -14,6 +14,7 @@ module ReportData
     data = { months: MonthsData.hash_months(transactions, params[:opening_balance]) }
     data[:months_summary] = SummaryData.months_summary(data[:months], params[:opening_balance])
     data[:sheets_summary] = SummaryData.sheets_summary(transactions, params[:sheet_names])
+    data[:payee_summary] = SummaryData.payee_summary(transactions)
     data
   end
 

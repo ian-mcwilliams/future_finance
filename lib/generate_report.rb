@@ -20,6 +20,7 @@ module GenerateReport
     combined_report_object = {
       'months_summary' => personal.delete('months_summary'),
       'sheets_summary' => personal.delete('sheets_summary'),
+      'payee_summary' => personal.delete('payee_summary'),
       'all_transactions' => personal.delete('all_months'),
       'income_summary' => income['months_summary'],
       'income_transactions' => income['all_months']
