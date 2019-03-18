@@ -8,6 +8,7 @@ module MonthsData
     end
     positioned_transactions(draft_hash_months)
     balanced_transactions(draft_hash_months, opening_balance)
+    float_amounts(draft_hash_months)
     draft_hash_months
   end
 
@@ -33,6 +34,12 @@ module MonthsData
         current_balance += (transaction[:amount].to_s.delete(',').to_f * 100).to_i
         transaction[:balance] = current_balance.to_f / 100
       end
+    end
+  end
+
+  def self.float_amounts(draft_hash_months)
+    draft_hash_months.values.each do |month|
+      month[:transactions].each { |t| t[:amount] = t[:amount].to_f }
     end
   end
 
