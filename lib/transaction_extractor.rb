@@ -32,6 +32,7 @@ module TransactionExtractor
 
     end_date = raw_trans['end_date'] || params[:end_date]
     end_date = DateTime.parse(end_date) if end_date.is_a?(String)
+    return [] if end_date < params[:start_date]
     end_date = end_date.between?(params[:start_date], params[:end_date]) ? end_date : params[:end_date]
 
     duration_days = (end_date - start_date).to_i
